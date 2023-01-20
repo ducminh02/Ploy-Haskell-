@@ -1,0 +1,330 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+<span class="lineno">    2 </span>module Ploy where  -- do NOT CHANGE export of module
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>import Board
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>-- IMPORTS HERE
+<span class="lineno">    7 </span>-- Note: Imports allowed that DO NOT REQUIRE TO CHANGE package.yaml, e.g.:
+<span class="lineno">    8 </span>--       import Data.Char
+<span class="lineno">    9 </span>import Data.Bits ( (.&amp;.), (.|.), shift )
+<span class="lineno">   10 </span>import qualified Data.Char as C
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-- #############################################################################
+<span class="lineno">   14 </span>-- ########################### GIVEN IMPLEMENTATION ############################
+<span class="lineno">   15 </span>-- #############################################################################
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>data Move = Move {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">start</span></span></span> :: Pos, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">target</span></span></span> :: Pos, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">turn</span></span></span> :: Int}
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>instance Show Move where
+<span class="lineno">   20 </span>  <span class="decl"><span class="nottickedoff">show (Move (Pos startC startR) (Pos tarC tarR) tr) = [startC] ++ (show startR) ++ &quot;-&quot; ++ [tarC] ++ show tarR ++ &quot;-&quot; ++ show tr</span></span>
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>instance Eq Move where
+<span class="lineno">   23 </span>  <span class="decl"><span class="istickedoff">(==) (Move (Pos sc1 sr1) (Pos tc1 tr1) r1) (Move (Pos sc2 sr2) (Pos tc2 tr2) r2) =</span>
+<span class="lineno">   24 </span><span class="spaces">      </span><span class="istickedoff">sc1 == sc2 &amp;&amp; sr1 == sr2 &amp;&amp; tc1 == tc2 &amp;&amp; tr1 == tr2 &amp;&amp; r1 == r2</span></span>
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>rotate :: Int -&gt; Int -&gt; Int
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">rotate o tr = (.&amp;.) ((.|.) (shift o tr) (shift o (tr-8))) 255</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- #############################################################################
+<span class="lineno">   32 </span>-- ####################### gameFinished :: Board -&gt; Bool #######################
+<span class="lineno">   33 </span>-- ####################### - 3 Functional Points         #######################
+<span class="lineno">   34 </span>-- ####################### - 1 Coverage Point            #######################
+<span class="lineno">   35 </span>-- #############################################################################
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>gameFinished :: Board -&gt; Bool
+<span class="lineno">   40 </span><span class="decl"><span class="istickedoff">gameFinished board</span>
+<span class="lineno">   41 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">countCommando board &lt; 2</span> = True</span>
+<span class="lineno">   42 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">countWhiteBoard board &lt; 2</span> = <span class="nottickedoff">True</span></span>
+<span class="lineno">   43 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">countBlackBoard board &lt; 2</span> = <span class="nottickedoff">True</span></span>
+<span class="lineno">   44 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">False</span></span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>checkPieceCommando :: Cell -&gt; Bool
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">checkPieceCommando Empty = False</span>
+<span class="lineno">   48 </span><span class="spaces"></span><span class="istickedoff">checkPieceCommando (Piece _ i)</span>
+<span class="lineno">   49 </span><span class="spaces"> </span><span class="istickedoff">| count1 (eightBitsCon(toBinary i)) == 4 = True</span>
+<span class="lineno">   50 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = False</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>countCommandoRow :: [Cell] -&gt; Int
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">countCommandoRow [] = 0</span>
+<span class="lineno">   54 </span><span class="spaces"></span><span class="istickedoff">countCommandoRow (x:xs)</span>
+<span class="lineno">   55 </span><span class="spaces"> </span><span class="istickedoff">| checkPieceCommando x = 1 + countCommandoRow xs</span>
+<span class="lineno">   56 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = countCommandoRow xs</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>countCommando :: Board -&gt; Int
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">countCommando = foldr ((+) . countCommandoRow) 0</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>checkPieceWhite :: Cell -&gt; Bool
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">checkPieceWhite Empty = <span class="nottickedoff">False</span></span>
+<span class="lineno">   63 </span><span class="spaces"></span><span class="istickedoff">checkPieceWhite (Piece p _)</span>
+<span class="lineno">   64 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">p == White</span> = <span class="nottickedoff">True</span></span>
+<span class="lineno">   65 </span><span class="spaces"> </span><span class="istickedoff">|<span class="tickonlytrue">otherwise</span> = False</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>checkPieceBlack :: Cell -&gt; Bool
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">checkPieceBlack Empty = <span class="nottickedoff">False</span></span>
+<span class="lineno">   69 </span><span class="spaces"></span><span class="istickedoff">checkPieceBlack (Piece p _)</span>
+<span class="lineno">   70 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">p == Black</span> = True</span>
+<span class="lineno">   71 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">False</span></span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>countWhiteRow :: [Cell] -&gt; Int
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">countWhiteRow [] = 0</span>
+<span class="lineno">   75 </span><span class="spaces"></span><span class="nottickedoff">countWhiteRow (x:xs)</span>
+<span class="lineno">   76 </span><span class="spaces"> </span><span class="nottickedoff">| checkPieceWhite x = 1 + countWhiteRow xs</span>
+<span class="lineno">   77 </span><span class="spaces"> </span><span class="nottickedoff">| otherwise = countWhiteRow xs</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>countWhiteBoard :: Board -&gt; Int
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">countWhiteBoard = foldr ((+). countWhiteRow) 0</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>countBlackRow :: [Cell] -&gt; Int
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">countBlackRow [] = 0</span>
+<span class="lineno">   84 </span><span class="spaces"></span><span class="istickedoff">countBlackRow (x:xs)</span>
+<span class="lineno">   85 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">checkPieceBlack x</span> = <span class="nottickedoff">1 + countBlackRow xs</span></span>
+<span class="lineno">   86 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">countBlackRow xs</span></span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>countBlackBoard :: Board -&gt; Int
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">countBlackBoard = foldr ((+). countBlackRow) 0</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>-- #############################################################################
+<span class="lineno">   94 </span>-- ################### isValidMove :: Board -&gt; Move -&gt; Bool ####################
+<span class="lineno">   95 </span>-- ################### - 5 Functional Points                ####################
+<span class="lineno">   96 </span>-- ################### - 1 Coverage Point                   ####################
+<span class="lineno">   97 </span>-- #############################################################################
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>isValidMove :: Board -&gt; Move -&gt; Bool
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">isValidMove board move@(Move{start = start, target = finish, turn = t})</span>
+<span class="lineno">  101 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">findCell board start == Empty</span> = <span class="nottickedoff">False</span> -- Empty Startpoint</span>
+<span class="lineno">  102 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">checkAllyInWay board start (line start finish)</span> = <span class="nottickedoff">False</span> -- Ally in the way</span>
+<span class="lineno">  103 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">pieceMovCap (findCell board start) &lt; length (line start finish) -1</span> = <span class="nottickedoff">False</span> -- Cant move that far</span>
+<span class="lineno">  104 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">typeofMovement move `notElem` pieceMovDirection (findCell board start)</span> = <span class="nottickedoff">False</span> -- go in the wrong direction</span>
+<span class="lineno">  105 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">t &lt; 0 || t &gt; 7</span> = <span class="nottickedoff">False</span> -- wrong nums of turn</span>
+<span class="lineno">  106 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">not (findCell board start == Piece White <span class="nottickedoff">16</span> || findCell board start == Piece Black 1) &amp;&amp; t &gt; 0 &amp;&amp; length (line start finish) &gt; 1</span>= <span class="nottickedoff">False</span> -- turn and move when not shield</span>
+<span class="lineno">  107 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = True</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>checkAllyInWay :: Board -&gt; Pos -&gt; [Pos] -&gt; Bool
+<span class="lineno">  111 </span><span class="decl"><span class="istickedoff">checkAllyInWay board start (_:xs)</span>
+<span class="lineno">  112 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">checkPieceWhite (findCell board start) &amp;&amp; <span class="nottickedoff">countWhiteRow (findCellRow board xs) &gt; 0</span></span> = <span class="nottickedoff">True</span></span>
+<span class="lineno">  113 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">checkPieceBlack (findCell board start) &amp;&amp; countBlackRow (findCellRow <span class="nottickedoff">board</span> xs) &gt; 0</span> = <span class="nottickedoff">True</span></span>
+<span class="lineno">  114 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = False</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>findCell :: Board -&gt; Pos -&gt; Cell
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">findCell board (Pos{col = c, row = r}) = (board!!a)!! (C.ord c - 97)</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">where a = case r of 9 -&gt; <span class="nottickedoff">0</span></span>
+<span class="lineno">  119 </span><span class="spaces">                      </span><span class="istickedoff">8 -&gt; <span class="nottickedoff">1</span></span>
+<span class="lineno">  120 </span><span class="spaces">                      </span><span class="istickedoff">7 -&gt; <span class="nottickedoff">2</span></span>
+<span class="lineno">  121 </span><span class="spaces">                      </span><span class="istickedoff">6 -&gt; <span class="nottickedoff">3</span></span>
+<span class="lineno">  122 </span><span class="spaces">                      </span><span class="istickedoff">5 -&gt; <span class="nottickedoff">4</span></span>
+<span class="lineno">  123 </span><span class="spaces">                      </span><span class="istickedoff">4 -&gt; <span class="nottickedoff">5</span></span>
+<span class="lineno">  124 </span><span class="spaces">                      </span><span class="istickedoff">3 -&gt; <span class="nottickedoff">6</span></span>
+<span class="lineno">  125 </span><span class="spaces">                      </span><span class="istickedoff">2 -&gt; <span class="nottickedoff">7</span></span>
+<span class="lineno">  126 </span><span class="spaces">                      </span><span class="istickedoff">1 -&gt; 8</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>findCellRow :: Board -&gt; [Pos] -&gt; [Cell]
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">findCellRow board = map <span class="nottickedoff">(findCell board)</span></span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>startingBoard :: Board
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">startingBoard = [[Empty,Piece White 84,Piece White 41,Piece White 56,Piece White 170,Piece White 56,Piece White 41,Piece White 84,Empty],[Empty,Empty,Piece White 24,Piece White 40,Piece White 17,Piece White 40,Piece White 48,Empty,Empty],[Empty,Empty,Empty,Piece White 16,Piece White 16,Piece White 16,Empty,Empty,Empty],[Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty],[Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty],[Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty,Empty],[Empty,Empty,Empty,Piece Black 1,Piece Black 1,Piece Black 1,Empty,Empty,Empty],[Empty,Empty,Piece Black 3,Piece Black 130,Piece Black 17,Piece Black 130,Piece Black 129,Empty,Empty],[Empty,Piece Black 69,Piece Black 146,Piece Black 131,Piece Black 170,Piece Black 131,Piece Black 146,Piece Black 69,Empty]]</span></span>
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>typeofMovement :: Move -&gt; String
+<span class="lineno">  135 </span><span class="decl"><span class="istickedoff">typeofMovement (Move{start = start@(Pos{col = c1, row = r1}), target = finish@(Pos{col = c2, row = r2})})</span>
+<span class="lineno">  136 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">start == finish</span> = &quot;Stay&quot;</span>
+<span class="lineno">  137 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">c1 == c2 &amp;&amp; r2 &gt; r1</span> = <span class="nottickedoff">&quot;Up&quot;</span></span>
+<span class="lineno">  138 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">c1 == c2 &amp;&amp; r2 &lt; r1</span> = <span class="nottickedoff">&quot;Down&quot;</span></span>
+<span class="lineno">  139 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r1 == r2 &amp;&amp; C.ord c2 &gt; C.ord c1</span> = <span class="nottickedoff">&quot;Right&quot;</span></span>
+<span class="lineno">  140 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r1 == r2 &amp;&amp; C.ord c2 &lt; C.ord c1</span> = <span class="nottickedoff">&quot;Left&quot;</span></span>
+<span class="lineno">  141 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r2 &gt; r1 &amp;&amp; C.ord c2 &lt; C.ord c1</span> = <span class="nottickedoff">&quot;Left-Up&quot;</span></span>
+<span class="lineno">  142 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r2 &gt; r1 &amp;&amp; C.ord c2 &gt; C.ord c1</span> = <span class="nottickedoff">&quot;Right-Up&quot;</span></span>
+<span class="lineno">  143 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r2 &lt; r1 &amp;&amp; C.ord c2 &gt; C.ord c1</span> = <span class="nottickedoff">&quot;Right-Down&quot;</span></span>
+<span class="lineno">  144 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">r2 &lt; r1 &amp;&amp; C.ord c2 &lt; C.ord c1</span> = <span class="nottickedoff">&quot;Left-Down&quot;</span></span>
+<span class="lineno">  145 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">&quot;Invalid&quot;</span></span></span>
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>toBinary :: Int -&gt; [Int]
+<span class="lineno">  148 </span><span class="decl"><span class="istickedoff">toBinary 0 = [0]</span>
+<span class="lineno">  149 </span><span class="spaces"></span><span class="istickedoff">toBinary n = toBinary ( n `quot` 2 ) ++ [ n `rem` 2 ]</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>eightBitsCon :: [Int] -&gt; [Int]
+<span class="lineno">  152 </span><span class="decl"><span class="istickedoff">eightBitsCon a@(_:xs)</span>
+<span class="lineno">  153 </span><span class="spaces"> </span><span class="istickedoff">| length a &gt; 8 = xs</span>
+<span class="lineno">  154 </span><span class="spaces"> </span><span class="istickedoff">| length a == 8 = a</span>
+<span class="lineno">  155 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = eightBitsCon (0 : a)</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>directionList :: [Int] -&gt; [String]
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff">directionList xs</span>
+<span class="lineno">  159 </span><span class="spaces"> </span><span class="istickedoff">| (xs!!7) == 1 = &quot;Up&quot; : <span class="nottickedoff">directionList (replace xs 7 0)</span></span>
+<span class="lineno">  160 </span><span class="spaces"> </span><span class="istickedoff">| (xs!!6) == 1 = &quot;Right-Up&quot; : directionList (replace xs 6 0)</span>
+<span class="lineno">  161 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">(xs!!5) == 1</span> = <span class="nottickedoff">&quot;Right&quot; : directionList (replace xs 5 0)</span></span>
+<span class="lineno">  162 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">(xs!!4) == 1</span> = <span class="nottickedoff">&quot;Right-Down&quot; : directionList (replace xs 4 0)</span></span>
+<span class="lineno">  163 </span><span class="spaces"> </span><span class="istickedoff">| (xs!!3) == 1 = &quot;Down&quot; : directionList (replace xs 3 0)</span>
+<span class="lineno">  164 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">(xs!!2) == 1</span> = <span class="nottickedoff">&quot;Left-Down&quot; : directionList (replace xs 2 0)</span></span>
+<span class="lineno">  165 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">(xs!!1) == 1</span> = <span class="nottickedoff">&quot;Left&quot; : directionList (replace xs 1 0)</span></span>
+<span class="lineno">  166 </span><span class="spaces"> </span><span class="istickedoff">| head xs == 1 = &quot;Left-Up&quot; : directionList(replace xs 0 0)</span>
+<span class="lineno">  167 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">head xs == 0</span> = [&quot;Stay&quot;]</span></span>
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>
+<span class="lineno">  170 </span>replace :: [a] -&gt; Int -&gt; a -&gt; [a]
+<span class="lineno">  171 </span><span class="decl"><span class="istickedoff">replace xs i e = case splitAt i xs of</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">(before, _:after) -&gt; before ++ e: after</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">xs</span></span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>count1 :: [Int] -&gt; Int
+<span class="lineno">  176 </span><span class="decl"><span class="istickedoff">count1 [] = 0</span>
+<span class="lineno">  177 </span><span class="spaces"></span><span class="istickedoff">count1 (x:xs)</span>
+<span class="lineno">  178 </span><span class="spaces"> </span><span class="istickedoff">| x == 1 = 1 + count1 xs</span>
+<span class="lineno">  179 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = count1 xs</span></span>
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>movingCap :: [Int] -&gt; Int
+<span class="lineno">  182 </span><span class="decl"><span class="istickedoff">movingCap xs</span>
+<span class="lineno">  183 </span><span class="spaces"> </span><span class="istickedoff">| count1 xs == 1 = 1</span>
+<span class="lineno">  184 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlyfalse">count1 xs == 2</span> = <span class="nottickedoff">2</span></span>
+<span class="lineno">  185 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">count1 xs == 3</span> = 3</span>
+<span class="lineno">  186 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">count1 xs == 4</span> = <span class="nottickedoff">1</span></span>
+<span class="lineno">  187 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">0</span></span></span>
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>pieceMovCap :: Cell -&gt; Int
+<span class="lineno">  190 </span><span class="decl"><span class="istickedoff">pieceMovCap Empty = <span class="nottickedoff">0</span></span>
+<span class="lineno">  191 </span><span class="spaces"></span><span class="istickedoff">pieceMovCap (Piece _ i) = movingCap(eightBitsCon (toBinary i))</span></span>
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>pieceMovDirection :: Cell -&gt; [String]
+<span class="lineno">  194 </span><span class="decl"><span class="istickedoff">pieceMovDirection Empty = <span class="nottickedoff">[]</span></span>
+<span class="lineno">  195 </span><span class="spaces"></span><span class="istickedoff">pieceMovDirection (Piece _ i) = directionList(eightBitsCon (toBinary i))</span></span>
+<span class="lineno">  196 </span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>-- #############################################################################
+<span class="lineno">  199 </span>-- ################### possibleMoves :: Pos -&gt; Cell -&gt; [Move] ##################
+<span class="lineno">  200 </span>-- ################### - 6 Functional Points                  ##################
+<span class="lineno">  201 </span>-- ################### - 1 Coverage Point                     ##################
+<span class="lineno">  202 </span>-- #############################################################################
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>rotatingPieces :: Pos -&gt; Int -&gt; [Move]
+<span class="lineno">  206 </span><span class="decl"><span class="istickedoff">rotatingPieces pos a</span>
+<span class="lineno">  207 </span><span class="spaces"> </span><span class="istickedoff">| a &gt; 7 = []</span>
+<span class="lineno">  208 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Move {start = pos, target = pos, turn = <span class="nottickedoff">a</span>} : rotatingPieces pos (a + 1)</span></span>
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span>lineBetter :: Pos -&gt; String -&gt; Int -&gt; [Pos]
+<span class="lineno">  211 </span><span class="decl"><span class="istickedoff">lineBetter Pos{col = c, row = r} direction steps</span>
+<span class="lineno">  212 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">direction == &quot;Up&quot;</span> = cleansedEdge (line Pos{col = c, row = r} Pos{col = c, row = r + steps})</span>
+<span class="lineno">  213 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Down&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = c, row = r - steps})</span></span>
+<span class="lineno">  214 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Right&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c + steps), row = r})</span></span>
+<span class="lineno">  215 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Left&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c - steps), row = r})</span></span>
+<span class="lineno">  216 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Left-Up&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c - steps), row = r + steps})</span></span>
+<span class="lineno">  217 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Right-Up&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c + steps), row = r + steps})</span></span>
+<span class="lineno">  218 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Left-Down&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c - steps), row = r - steps})</span></span>
+<span class="lineno">  219 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Right-Down&quot;</span> = <span class="nottickedoff">cleansedEdge (line Pos{col = c, row = r} Pos{col = C.chr(C.ord c + steps), row = r - steps})</span></span>
+<span class="lineno">  220 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">direction == &quot;Stay&quot;</span> = <span class="nottickedoff">[]</span></span>
+<span class="lineno">  221 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">[]</span></span></span>
+<span class="lineno">  222 </span>
+<span class="lineno">  223 </span>moreThanOneDirection :: Pos -&gt; [String] -&gt; Int -&gt; [Pos]
+<span class="lineno">  224 </span><span class="decl"><span class="istickedoff">moreThanOneDirection pos xs i</span>
+<span class="lineno">  225 </span><span class="spaces">  </span><span class="istickedoff">= foldr (\ x -&gt; (++) (lineBetter pos x i)) <span class="nottickedoff">[]</span> xs</span></span>
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>makingMoves :: Pos -&gt; [Pos] -&gt; [Move]
+<span class="lineno">  228 </span><span class="decl"><span class="nottickedoff">makingMoves _ [] = []</span>
+<span class="lineno">  229 </span><span class="spaces"></span><span class="nottickedoff">makingMoves pos (x:xs)</span>
+<span class="lineno">  230 </span><span class="spaces"> </span><span class="nottickedoff">| pos == x = makingMoves pos xs</span>
+<span class="lineno">  231 </span><span class="spaces"> </span><span class="nottickedoff">| otherwise = Move {start = pos, target = x, turn = 0} : makingMoves pos xs</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>makingMovesShield :: Pos -&gt; [Pos] -&gt; Int -&gt; [Move]
+<span class="lineno">  234 </span><span class="decl"><span class="istickedoff">makingMovesShield _ _ 8 = <span class="nottickedoff">[]</span></span>
+<span class="lineno">  235 </span><span class="spaces"></span><span class="istickedoff">makingMovesShield pos (x:xs) i</span>
+<span class="lineno">  236 </span><span class="spaces"> </span><span class="istickedoff">| pos == x = makingMovesShield pos xs i</span>
+<span class="lineno">  237 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Move {start = pos, target = x, turn = i} : <span class="nottickedoff">makingMovesShield pos [x] (i+1)</span></span></span>
+<span class="lineno">  238 </span>
+<span class="lineno">  239 </span>checkPieceShield :: Cell -&gt; Bool
+<span class="lineno">  240 </span><span class="decl"><span class="istickedoff">checkPieceShield Empty = <span class="nottickedoff">False</span></span>
+<span class="lineno">  241 </span><span class="spaces"></span><span class="istickedoff">checkPieceShield (Piece _ i)</span>
+<span class="lineno">  242 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">count1 (eightBitsCon (toBinary i)) == 1</span> = True</span>
+<span class="lineno">  243 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">False</span></span></span>
+<span class="lineno">  244 </span>
+<span class="lineno">  245 </span>possibleMoves :: Pos -&gt; Cell -&gt; [Move]
+<span class="lineno">  246 </span><span class="decl"><span class="istickedoff">possibleMoves pos piece = if <span class="tickonlyfalse">not (checkPieceShield piece)</span> then <span class="nottickedoff">rotatingPieces pos 1 ++ makingMoves pos (moreThanOneDirection pos (pieceMovDirection piece) (pieceMovCap piece))</span> else rotatingPieces pos 1 ++ makingMovesShield pos (moreThanOneDirection pos (pieceMovDirection piece) (pieceMovCap piece)) 0</span></span>
+<span class="lineno">  247 </span>
+<span class="lineno">  248 </span>
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>
+<span class="lineno">  251 </span>-- #############################################################################
+<span class="lineno">  252 </span>-- ############# IMPLEMENT listMoves :: Board -&gt; Player -&gt; [Move] ##############
+<span class="lineno">  253 </span>-- ############# - 2 Functional Points                            ##############
+<span class="lineno">  254 </span>-- ############# - 1 Coverage Point                               ##############
+<span class="lineno">  255 </span>-- #############################################################################
+<span class="lineno">  256 </span>
+<span class="lineno">  257 </span>listMoves :: Board -&gt; Player -&gt; [Move]
+<span class="lineno">  258 </span><span class="decl"><span class="istickedoff">listMoves board p</span>
+<span class="lineno">  259 </span><span class="spaces"> </span><span class="istickedoff">| <span class="tickonlytrue">gameFinished board</span> = []</span>
+<span class="lineno">  260 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">p == White</span> = <span class="nottickedoff">whiteMovesBoard board</span></span>
+<span class="lineno">  261 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">p == Black</span> = <span class="nottickedoff">blackMovesBoard board</span></span>
+<span class="lineno">  262 </span><span class="spaces"> </span><span class="istickedoff">| <span class="nottickedoff">otherwise</span> = <span class="nottickedoff">[]</span></span></span>
+<span class="lineno">  263 </span>
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>whitePosRow :: [Cell] -&gt; Int -&gt; [Char] -- find col of White Position
+<span class="lineno">  266 </span><span class="decl"><span class="nottickedoff">whitePosRow [] _ = []</span>
+<span class="lineno">  267 </span><span class="spaces"></span><span class="nottickedoff">whitePosRow (x:xs) c</span>
+<span class="lineno">  268 </span><span class="spaces"> </span><span class="nottickedoff">| checkPieceWhite x = C.chr(c + 97) : whitePosRow xs (c + 1)</span>
+<span class="lineno">  269 </span><span class="spaces"> </span><span class="nottickedoff">| otherwise = whitePosRow xs (c + 1)</span></span>
+<span class="lineno">  270 </span>
+<span class="lineno">  271 </span>blackPosRow :: [Cell] -&gt; Int -&gt; [Char] -- find col of Black Position
+<span class="lineno">  272 </span><span class="decl"><span class="nottickedoff">blackPosRow [] _ = []</span>
+<span class="lineno">  273 </span><span class="spaces"></span><span class="nottickedoff">blackPosRow (x:xs) c</span>
+<span class="lineno">  274 </span><span class="spaces"> </span><span class="nottickedoff">| checkPieceBlack x = C.chr(c + 97) : blackPosRow xs (c + 1)</span>
+<span class="lineno">  275 </span><span class="spaces"> </span><span class="nottickedoff">| otherwise = blackPosRow xs (c + 1)</span></span>
+<span class="lineno">  276 </span>
+<span class="lineno">  277 </span>toPos :: [Char] -&gt; Int -&gt; [Pos]
+<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">toPos [] _ = []</span>
+<span class="lineno">  279 </span><span class="spaces"></span><span class="nottickedoff">toPos (x:xs) row = Pos{col = x, row = row} : toPos xs row</span></span>
+<span class="lineno">  280 </span>
+<span class="lineno">  281 </span>whitePosBoard :: Board -&gt; Int -&gt; [Pos]
+<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">whitePosBoard [] _ = []</span>
+<span class="lineno">  283 </span><span class="spaces"></span><span class="nottickedoff">whitePosBoard (x:xs) i = toPos (whitePosRow x 0) i ++ whitePosBoard xs (i-1)</span></span>
+<span class="lineno">  284 </span>
+<span class="lineno">  285 </span>blackPosBoard :: Board -&gt; Int -&gt; [Pos]
+<span class="lineno">  286 </span><span class="decl"><span class="nottickedoff">blackPosBoard [] _ = []</span>
+<span class="lineno">  287 </span><span class="spaces"></span><span class="nottickedoff">blackPosBoard (x:xs) i = toPos (blackPosRow x 0) i ++ blackPosBoard xs (i-1)</span></span>
+<span class="lineno">  288 </span>
+<span class="lineno">  289 </span>whiteMoves :: [Pos] -&gt; Board -&gt; [Move]
+<span class="lineno">  290 </span><span class="decl"><span class="nottickedoff">whiteMoves [] _ = []</span>
+<span class="lineno">  291 </span><span class="spaces"></span><span class="nottickedoff">whiteMoves (x:xs) board = cleansedMoves board (possibleMoves x (findCell board x)) ++ whiteMoves xs board</span></span>
+<span class="lineno">  292 </span>
+<span class="lineno">  293 </span>blackMoves :: [Pos] -&gt; Board -&gt; [Move]
+<span class="lineno">  294 </span><span class="decl"><span class="nottickedoff">blackMoves [] _ = []</span>
+<span class="lineno">  295 </span><span class="spaces"></span><span class="nottickedoff">blackMoves (x:xs) board = cleansedMoves board (possibleMoves x (findCell board x)) ++ blackMoves xs board</span></span>
+<span class="lineno">  296 </span>
+<span class="lineno">  297 </span>cleansedMoves :: Board -&gt; [Move] -&gt; [Move]
+<span class="lineno">  298 </span><span class="decl"><span class="nottickedoff">cleansedMoves _ [] = []</span>
+<span class="lineno">  299 </span><span class="spaces"></span><span class="nottickedoff">cleansedMoves board (x:xs)</span>
+<span class="lineno">  300 </span><span class="spaces"> </span><span class="nottickedoff">| isValidMove board x = x : cleansedMoves board xs</span>
+<span class="lineno">  301 </span><span class="spaces"> </span><span class="nottickedoff">| otherwise = cleansedMoves board xs</span></span>
+<span class="lineno">  302 </span>
+<span class="lineno">  303 </span>whiteMovesBoard :: Board -&gt; [Move]
+<span class="lineno">  304 </span><span class="decl"><span class="nottickedoff">whiteMovesBoard board = whiteMoves (whitePosBoard board 9) board</span></span>
+<span class="lineno">  305 </span>
+<span class="lineno">  306 </span>blackMovesBoard :: Board -&gt; [Move]
+<span class="lineno">  307 </span><span class="decl"><span class="nottickedoff">blackMovesBoard board = blackMoves (blackPosBoard board 9) board</span></span>
+
+</pre>
+</body>
+</html>
